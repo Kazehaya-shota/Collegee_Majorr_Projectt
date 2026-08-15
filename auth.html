@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Join CourseMaster to build and keep your personal learning paths." />
+    <title>Join CourseMaster</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="auth.css" />
+  </head>
+  <body class="auth-page">
+    <main class="auth-layout">
+      <section class="auth-aside">
+        <a class="brand light-brand" href="index.html" aria-label="Back to CourseMaster home">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span>course<span>master</span></span>
+        </a>
+        <div class="aside-copy">
+          <p class="eyebrow"><span class="pulse"></span> YOUR LEARNING, IN ONE PLACE</p>
+          <h1>Make curiosity<br />a <em>practice.</em></h1>
+          <p>Save your paths, keep your progress, and return to the next meaningful step whenever you are ready.</p>
+        </div>
+        <div class="mini-path" aria-label="A saved CourseMaster learning path">
+          <span class="mini-path-label">YOUR NEXT STEP</span>
+          <div><b>02</b><p><strong>Build a shared language</strong><small>Design systems for product teams · 18 min</small></p><span>→</span></div>
+        </div>
+        <p class="aside-note">Made for steady learners, not perfect streaks.</p>
+      </section>
+
+      <section class="auth-main">
+        <a href="index.html" class="back-link">← Back to CourseMaster</a>
+        <div class="auth-panel" id="auth-panel">
+          <div class="auth-tabs" role="tablist" aria-label="Authentication choice">
+            <button class="auth-tab active" data-mode="sign-up" role="tab" aria-selected="true">Join CourseMaster</button>
+            <button class="auth-tab" data-mode="sign-in" role="tab" aria-selected="false">Sign in</button>
+          </div>
+          <div id="clerk-auth" hidden></div>
+          <div id="local-auth">
+            <div class="auth-copy">
+              <span class="auth-kicker">A small step toward your next big one</span>
+              <h2 id="auth-title">Create your free account</h2>
+              <p id="auth-description">Keep every learning path, practice result, and small win in one place.</p>
+            </div>
+            <form id="auth-form">
+              <label class="name-field"><span>Your name</span><input type="text" autocomplete="name" placeholder="What should we call you?" /></label>
+              <label><span>Email address</span><input type="email" autocomplete="email" placeholder="you@example.com" required /></label>
+              <label><span>Password</span><div class="password-field"><input type="password" autocomplete="new-password" placeholder="Create a password" required minlength="8" /><button type="button" class="password-toggle" aria-label="Show password">Show</button></div></label>
+              <button type="submit" class="primary-button full" id="auth-submit">Create my account <span>→</span></button>
+            </form>
+            <div class="auth-divider"><span>or continue with</span></div>
+            <div class="social-buttons"><button type="button" aria-label="Continue with Google"><span class="google">G</span> Google</button><button type="button" aria-label="Continue with Apple"><span>●</span> Apple</button></div>
+            <p class="terms">By continuing, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</p>
+          </div>
+          <p class="auth-switch" id="auth-switch">Already learning with us? <button type="button" data-switch-mode="sign-in">Sign in instead</button></p>
+        </div>
+      </section>
+    </main>
+    <script src="clerk-config.js"></script>
+    <script src="auth.js"></script>
+  </body>
+</html>

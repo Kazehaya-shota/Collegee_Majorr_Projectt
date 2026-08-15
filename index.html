@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="CourseMaster turns your goal and sources into a trusted learning path." />
+    <title>CourseMaster — Learn with a plan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="brand" href="#top" aria-label="CourseMaster home">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span>course<span>master</span></span>
+        </a>
+        <div class="nav-links">
+          <a href="#how-it-works">How it works</a>
+          <a href="#why">Why CourseMaster</a>
+        </div>
+        <div class="nav-auth">
+          <a href="auth.html#sign-in" class="sign-in-link">Sign in</a>
+          <a href="auth.html#sign-up" class="join-button">Join CourseMaster <span>→</span></a>
+        </div>
+      </nav>
+
+      <main id="top">
+        <section class="hero">
+          <div class="hero-copy">
+            <div class="eyebrow"><span class="pulse"></span> The learning path, made personal</div>
+            <h1>Learn with a plan<br /><em>you can trust.</em></h1>
+            <p class="hero-description">Turn a goal and the sources you already trust into an adaptive, hands-on course that fits your available time.</p>
+            <div class="hero-actions">
+              <button class="primary-button" data-scroll-to="planner">Build my learning plan <span>→</span></button>
+              <button class="text-button" data-scroll-to="how-it-works">See how it works <span>↓</span></button>
+            </div>
+            <div class="proof"><span class="proof-avatars"><b>AK</b><b>MN</b><b>+2k</b></span><span>Built for curious learners, not content collectors.</span></div>
+          </div>
+
+          <div class="hero-course" aria-label="Example learning plan">
+            <div class="course-window">
+              <div class="window-top"><span></span><span></span><span></span><p>YOUR LEARNING PATH</p><button aria-label="More options">•••</button></div>
+              <div class="course-content">
+                <div class="course-label">12-day focused path <span>Personalized</span></div>
+                <h2>Design systems<br />for product teams</h2>
+                <div class="course-meta"><span>◷ 3h 40m</span><span>◈ Intermediate</span><span>◎ 6 modules</span></div>
+                <div class="course-progress"><div><span>Progress</span><strong>18%</strong></div><i><b></b></i></div>
+                <div class="module active"><span class="module-number">01</span><div><strong>Foundations &amp; principles</strong><small>In progress · 18 min left</small></div><span class="play">▶</span></div>
+                <div class="module"><span class="module-number">02</span><div><strong>Building a shared language</strong><small>4 lessons · 28 min</small></div><span>→</span></div>
+                <div class="module"><span class="module-number">03</span><div><strong>Components that scale</strong><small>3 lessons · 35 min</small></div><span>→</span></div>
+              </div>
+              <div class="trusted-note"><span>✦</span> Grounded in 5 selected sources <button>View sources</button></div>
+            </div>
+            <div class="orbit orbit-a"></div><div class="orbit orbit-b"></div>
+          </div>
+        </section>
+
+        <section class="trust-bar" aria-label="Product promises">
+          <p>EVERY PATH IS BUILT AROUND</p>
+          <div><span><i>✦</i> Your goal</span><span><i>◫</i> Your sources</span><span><i>◌</i> Your schedule</span><span><i>↗</i> Your progress</span></div>
+        </section>
+
+        <section class="planner-section" id="planner">
+          <div class="section-heading"><div class="eyebrow dark"><span>01</span> CREATE YOUR PATH</div><h2>What would you like<br />to <em>get good at?</em></h2><p>A few thoughtful inputs make a dramatically better course.</p></div>
+          <div class="planner-card">
+            <div class="planner-steps"><span class="current">1. Your goal</span><i></i><span>2. Your context</span><i></i><span>3. Sources</span></div>
+            <form id="course-form">
+              <label for="topic">I want to learn</label>
+              <div class="topic-input"><input id="topic" type="text" value="Design systems for product teams" autocomplete="off" /><button type="submit" aria-label="Generate path">→</button></div>
+              <div class="chips" aria-label="Popular goals"><button type="button">AI product management</button><button type="button">Data storytelling</button><button type="button">Negotiation skills</button></div>
+              <div class="planner-options">
+                <label><span>My current level</span><select id="level"><option>Some experience</option><option>Just getting started</option><option>Comfortable / advanced</option></select></label>
+                <label><span>Time I can give it</span><select id="time"><option>20 minutes a day</option><option>10 minutes a day</option><option>45 minutes a day</option></select></label>
+              </div>
+              <div class="source-row"><div><span class="source-icon">↗</span><p><strong>Add sources (optional)</strong><small>Links, notes, PDFs, or videos you trust</small></p></div><button type="button" class="add-source">Add a source +</button></div>
+              <button class="primary-button full" type="submit">Create my learning path <span>→</span></button>
+            </form>
+          </div>
+        </section>
+
+        <section class="path-preview" id="preview" hidden>
+          <div class="preview-top"><div><div class="eyebrow dark"><span>02</span> YOUR DRAFT PATH</div><h2>Your path is ready to <em>shape.</em></h2><p>Review the plan before we write a single lesson. Change any module, or tell the coach what to adjust.</p></div><div class="source-confidence"><span>93%</span><p>source confidence<br /><small>5 sources checked</small></p></div></div>
+          <div class="preview-grid"><article class="roadmap-card"><div class="roadmap-head"><span>6 modules · ~3h 40m</span><button>Edit path</button></div><div id="generated-modules"></div><button class="outline-add">+ Add a module</button></article><aside class="coach-card"><div class="coach-head"><span class="coach-avatar">✦</span><div><strong>Your learning coach</strong><small>Here to shape the plan with you</small></div></div><div class="coach-message">I’ve placed the shared-language module before components so your team has a common vocabulary first. Want to emphasize design tokens or governance?</div><div class="coach-suggestions"><button>Focus on tokens</button><button>Add governance</button><button>Make it shorter</button></div><label><input aria-label="Message your learning coach" placeholder="Tell the coach what to change..." /><button>↑</button></label></aside></div>
+          <button class="primary-button start-path">Start learning this path <span>→</span></button>
+        </section>
+
+        <section class="why-section" id="why">
+          <div class="why-intro"><div class="eyebrow dark"><span>03</span> LEARNING THAT STICKS</div><h2>More than<br />a reading list.</h2></div>
+          <div class="why-cards">
+            <article><span class="feature-icon violet">⌁</span><h3>Grounded, not guessed</h3><p>See exactly where ideas come from. Bring your own materials or let us find and rank trusted ones.</p><a href="#planner">Explore source-aware learning <span>→</span></a></article>
+            <article><span class="feature-icon peach">↯</span><h3>Practice while you learn</h3><p>Apply each idea through quick challenges, reflections, and realistic scenarios — not passive chapters.</p><a href="#planner">See active learning <span>→</span></a></article>
+            <article><span class="feature-icon green">◌</span><h3>Adapts to your momentum</h3><p>Your next lesson changes with your performance, pace, and available time. No falling behind.</p><a href="#planner">See your adaptive path <span>→</span></a></article>
+          </div>
+        </section>
+
+        <section class="how-section" id="how-it-works">
+          <div class="how-copy"><div class="eyebrow"><span class="pulse"></span> HOW IT WORKS</div><h2>From curious<br />to <em>capable.</em></h2><p>CourseMaster turns your intent into a path of small, meaningful wins.</p></div>
+          <ol><li><span>01</span><div><h3>Set the destination</h3><p>Tell us the outcome you want, not just a topic.</p></div></li><li><span>02</span><div><h3>Make the plan yours</h3><p>Review the roadmap, sources, and pace before starting.</p></div></li><li><span>03</span><div><h3>Learn by doing</h3><p>Build confidence through practice and responsive feedback.</p></div></li></ol>
+        </section>
+
+        <section class="library" id="library"><div><p class="eyebrow dark"><span>START HERE</span> BUILT FOR REAL GOALS</p><h2>Start with a path<br />others are taking.</h2></div><div class="library-pills"><button>Build a startup pitch</button><button>Understand machine learning</button><button>Lead better 1:1s</button><button>Learn Figma basics</button><button>Speak more clearly</button></div></section>
+      </main>
+
+      <footer><a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>course<span>master</span></span></a><p>Learning paths for the work and life ahead.</p><span>© 2026 CourseMaster</span></footer>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>

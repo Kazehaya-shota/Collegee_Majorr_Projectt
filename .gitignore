@@ -1,0 +1,15 @@
+# dependencies and build output
+node_modules/
+.next/
+out/
+
+# local credentials
+.env
+.env.local
+.env.*.local
+
+# editor and operating-system files
+.DS_Store
+.vscode/
+.vercel
+.env*
