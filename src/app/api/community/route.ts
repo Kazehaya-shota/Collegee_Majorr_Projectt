@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { requestCourseDraft } from '@/lib/ai/claude';
+import { moderateCommunityMaterial, requestCourseDraft } from '@/lib/ai/claude';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
 export const runtime = 'nodejs';
@@ -45,6 +45,20 @@ async function ensureProfile(userId: string) {
 
 function setupError() {
   return NextResponse.json({ error: 'Community storage is not configured yet. Run the Community SQL migration first.', setupRequired: true }, { status: 503 });
+}
+
+function communityBlock() {
+  return NextResponse.json({ error: 'This content can’t be shared because it may not be appropriate for CourseMaster.', blocked: true }, { status: 422 });
+}
+
+async function contentBlocked(kind: string, title: string, content: string) {
+  try {
+    const review = await moderateCommunityMaterial({ kind, title, text: content });
+    return review.decision === 'block';
+  } catch (error) {
+    console.error('Community moderation failed', error);
+    return true;
+  }
 }
 
 export async function GET() {
@@ -117,6 +131,7 @@ export async function POST(request: Request) {
     if (action === 'create_group') {
       const title = text(body.title, 80); const topic = text(body.topic, 80); const description = text(body.description, 300); const visibility = text(body.visibility, 10) === 'private' ? 'private' : 'public'; const capacity = Math.min(250, Math.max(2, Number(body.capacity) || 30));
       if (title.length < 3 || topic.length < 2 || description.length < 10) return NextResponse.json({ error: 'Add a group name, topic, and short description.' }, { status: 400 });
+      if (await contentBlocked('study group', `${title} · ${topic}`, description)) return communityBlock();
       const inviteCode = crypto.randomUUID().replace(/-/g, '').slice(0, 10).toUpperCase();
       const { data: group, error: groupError } = await supabase.from('community_groups').insert({ title, topic, description, visibility, capacity, invite_code: inviteCode, created_by: userId }).select('id').single();
       if (groupError || !group) throw groupError ?? new Error('Group could not be created.');
@@ -155,16 +170,19 @@ export async function POST(request: Request) {
     } else if (action === 'create_room') {
       const title = text(body.title, 80); const topic = text(body.topic, 80); const description = text(body.description, 300);
       if (title.length < 3 || topic.length < 2 || description.length < 10) return NextResponse.json({ error: 'Add a room name, topic, and short description.' }, { status: 400 });
+      if (await contentBlocked('study room', `${title} · ${topic}`, description)) return communityBlock();
       const { error } = await supabase.from('community_rooms').insert({ title, topic, description, created_by: userId });
       if (error) throw error;
     } else if (action === 'create_post') {
       const roomId = text(body.roomId, 80); const content = text(body.content, 1800);
       if (!roomId || content.length < 3) return NextResponse.json({ error: 'Write a question or useful discussion prompt.' }, { status: 400 });
+      if (await contentBlocked('study room discussion', 'Study room post', content)) return communityBlock();
       const { error } = await supabase.from('community_posts').insert({ room_id: roomId, author_id: userId, body: content });
       if (error) throw error;
     } else if (action === 'reply') {
       const postId = text(body.postId, 80); const content = text(body.content, 1200);
       if (!postId || content.length < 2) return NextResponse.json({ error: 'Write a helpful reply first.' }, { status: 400 });
+      if (await contentBlocked('study room reply', 'Study room reply', content)) return communityBlock();
       const { error } = await supabase.from('community_replies').insert({ post_id: postId, author_id: userId, body: content });
       if (error) throw error;
     } else if (action === 'create_challenge') {
@@ -195,6 +213,7 @@ export async function POST(request: Request) {
     } else if (action === 'create_event') {
       const title = text(body.title, 100); const description = text(body.description, 800); const eventDate = text(body.eventDate, 80); const teamSize = Math.min(12, Math.max(1, Number(body.teamSize) || 4)); const skills = text(body.skills, 300).split(',').map((skill) => skill.trim()).filter(Boolean).slice(0, 8);
       if (title.length < 3 || description.length < 10 || Number.isNaN(new Date(eventDate).getTime())) return NextResponse.json({ error: 'Add an event title, description, and valid date.' }, { status: 400 });
+      if (await contentBlocked('community event', title, description)) return communityBlock();
       const { error } = await supabase.from('community_events').insert({ created_by: userId, title, description, event_date: new Date(eventDate).toISOString(), team_size: teamSize, skills });
       if (error) throw error;
     } else if (action === 'join_event') {

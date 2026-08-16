@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
+import { moderateCommunityMaterial } from '@/lib/ai/claude';
+import { readDocument } from '@/lib/document-ingestion';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
 export const runtime = 'nodejs';
@@ -46,6 +48,32 @@ async function ensureProfile(userId: string) {
   const { error } = await supabase.from('profiles').upsert({ clerk_user_id: userId }, { onConflict: 'clerk_user_id' });
   if (error) throw error;
   return supabase;
+}
+
+function moderationBlock() {
+  return NextResponse.json({ error: 'This resource can’t be shared because it may not be appropriate for CourseMaster.', blocked: true }, { status: 422 });
+}
+
+async function reviewMaterial(kind: string, title: string, content: string) {
+  try {
+    return await moderateCommunityMaterial({ kind, title, text: content });
+  } catch (error) {
+    console.error('Resource moderation failed', error);
+    return { decision: 'block' as const, reason: 'This content could not be safely reviewed.' };
+  }
+}
+
+async function reviewStoredFile(supabase: ReturnType<typeof createSupabaseAdminClient>, path: string, originalName: string, mimeType: string) {
+  const { data: blob, error } = await supabase.storage.from(BUCKET).download(path);
+  if (error || !blob) return { decision: 'block' as const, reason: 'This resource could not be safely reviewed.' };
+  try {
+    const file = new File([blob], originalName, { type: mimeType });
+    const extracted = await readDocument(file);
+    if (!extracted.trim()) return { decision: 'block' as const, reason: 'This resource could not be safely reviewed.' };
+    return await reviewMaterial('shared learning resource', originalName, extracted);
+  } catch {
+    return { decision: 'block' as const, reason: 'This resource could not be safely reviewed.' };
+  }
 }
 
 export async function GET() {
@@ -96,8 +124,10 @@ export async function POST(request: Request) {
   try {
     const supabase = await ensureProfile(userId);
     if (action === 'create_upload') {
-      const title = text(body.title, 120); const description = text(body.description, 600); const subject = text(body.subject, 80); const originalName = text(body.originalName, 180); const size = Number(body.size); const extension = fileExtension(originalName);
+      const title = text(body.title, 120); const description = text(body.description, 600); const subject = text(body.subject, 80); const originalName = text(body.originalName, 180); const sourceText = text(body.moderationText, 16000); const size = Number(body.size); const extension = fileExtension(originalName);
       if (title.length < 3 || subject.length < 2 || !ALLOWED_EXTENSIONS.has(extension) || !Number.isFinite(size) || size < 1 || size > MAX_FILE_BYTES) return NextResponse.json({ error: 'Add a title, subject, and a supported file up to 50 MB.' }, { status: 400 });
+      const firstReview = await reviewMaterial('shared learning resource', `${title} · ${subject}`, `${description}\n${sourceText}`);
+      if (firstReview.decision === 'block') return moderationBlock();
       const contentType = MIME_BY_EXTENSION[extension];
       const objectPath = `${userId.replace(/[^a-zA-Z0-9_-]/g, '-')}/${Date.now()}-${crypto.randomUUID()}-${safeFileName(originalName)}`;
       const { data: resource, error: resourceError } = await supabase.from('community_resources').insert({ owner_id: userId, title, description, subject, tags: tags(body.tags), resource_type: 'file', original_name: originalName, mime_type: contentType, file_size: size, object_path: objectPath, status: 'uploading' }).select('id').single();
@@ -108,8 +138,15 @@ export async function POST(request: Request) {
     }
     if (action === 'publish_upload') {
       const resourceId = text(body.resourceId, 80);
-      const { data: resource, error: resourceError } = await supabase.from('community_resources').select('owner_id, status').eq('id', resourceId).maybeSingle();
+      const { data: resource, error: resourceError } = await supabase.from('community_resources').select('owner_id, status, object_path, original_name, mime_type').eq('id', resourceId).maybeSingle();
       if (resourceError || !resource || resource.owner_id !== userId) return NextResponse.json({ error: 'This upload is not available.' }, { status: 404 });
+      if (!resource.object_path || !resource.original_name || !resource.mime_type) return moderationBlock();
+      const fullReview = await reviewStoredFile(supabase, resource.object_path, resource.original_name, resource.mime_type);
+      if (fullReview.decision === 'block') {
+        await supabase.storage.from(BUCKET).remove([resource.object_path]);
+        await supabase.from('community_resources').delete().eq('id', resourceId).eq('owner_id', userId);
+        return moderationBlock();
+      }
       const { error } = await supabase.from('community_resources').update({ status: 'published' }).eq('id', resourceId).eq('owner_id', userId).eq('status', 'uploading');
       if (error) throw error;
     } else if (action === 'create_link') {
@@ -117,6 +154,8 @@ export async function POST(request: Request) {
       let validUrl = '';
       try { const parsed = new URL(url); if (parsed.protocol === 'http:' || parsed.protocol === 'https:') validUrl = parsed.toString(); } catch { /* Invalid URLs are handled below. */ }
       if (title.length < 3 || subject.length < 2 || !validUrl) return NextResponse.json({ error: 'Add a title, subject, and a valid public link.' }, { status: 400 });
+      const linkReview = await reviewMaterial('shared learning link', `${title} · ${subject}`, `${description}\n${validUrl}`);
+      if (linkReview.decision === 'block') return moderationBlock();
       const { error } = await supabase.from('community_resources').insert({ owner_id: userId, title, description, subject, tags: tags(body.tags), resource_type: 'link', external_url: validUrl, status: 'published' });
       if (error) throw error;
     } else if (action === 'toggle_save' || action === 'toggle_helpful') {
@@ -129,6 +168,8 @@ export async function POST(request: Request) {
     } else if (action === 'comment_resource') {
       const resourceId = text(body.resourceId, 80); const content = text(body.content, 1200);
       if (!resourceId || content.length < 2) return NextResponse.json({ error: 'Write a useful comment first.' }, { status: 400 });
+      const commentReview = await reviewMaterial('resource discussion comment', 'Resource Exchange comment', content);
+      if (commentReview.decision === 'block') return NextResponse.json({ error: 'This comment can’t be shared because it may not be appropriate for CourseMaster.', blocked: true }, { status: 422 });
       const { error } = await supabase.from('community_resource_comments').insert({ resource_id: resourceId, author_id: userId, body: content });
       if (error) throw error;
     } else return NextResponse.json({ error: 'That Resource Exchange action is not available.' }, { status: 400 });

@@ -10,7 +10,7 @@ type CommunityTab = 'rooms' | 'challenges' | 'events';
 
 const groups = [
   { label: 'LEARNING TOOLS', links: [{ icon: '✦', label: 'AI Course Generation', href: '/dashboard/course-generator' }, { icon: '↥', label: 'Content Ingestion', href: '/dashboard/content-ingestion' }, { icon: '▶', label: 'YouTube to Course', href: '/dashboard/youtube-to-course' }, { icon: '◌', label: 'Interview Prep', href: '/dashboard/interview-prep' }] },
-  { label: 'COMMUNITY SPACE', links: [{ icon: '◌', label: 'Study Rooms', href: '/dashboard/community/study-rooms' }, { icon: '⚑', label: 'Quiz Challenges', href: '/dashboard/community/quiz-challenges' }, { icon: '◇', label: 'Events & Hackathons', href: '/dashboard/community/events-hackathons' }, { icon: 'resource-exchange', label: 'Resource Exchange', href: '/dashboard/resource-exchange' }] },
+  { label: 'COMMUNITY SPACE', links: [{ icon: '◌', label: 'Study Rooms', href: '/dashboard/community/study-rooms' }, { icon: '⚑', label: 'Quiz Challenges', href: '/dashboard/community/quiz-challenges' }, { icon: '◇', label: 'Events & Hackathons', href: '/dashboard/community/events-hackathons' }, { icon: 'resource-exchange', label: 'Resource Exchange', href: '/dashboard/resource-exchange' }, { icon: '⚙', label: 'Space Admin', href: '/dashboard/community/manage' }] },
   { label: 'YOUR SPACE', links: [{ icon: '▤', label: 'Learning Path', href: '/learning-path' }, { icon: '◒', label: 'Full Report', href: '/learning-path/report' }] },
 ];
 

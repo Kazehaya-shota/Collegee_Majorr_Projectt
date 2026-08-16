@@ -29,6 +29,7 @@ const sidebarGroups = [
       { icon: '⚑', label: 'Quiz Challenges', href: '/dashboard/community/quiz-challenges' },
       { icon: '◇', label: 'Events & Hackathons', href: '/dashboard/community/events-hackathons' },
       { icon: 'resource-exchange', label: 'Resource Exchange', href: '/dashboard/resource-exchange' },
+      { icon: '⚙', label: 'Space Admin', href: '/dashboard/community/manage' },
     ],
   },
   {
