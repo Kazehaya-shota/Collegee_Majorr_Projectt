@@ -2,8 +2,7 @@
 .aside{position:relative;overflow:hidden;padding:43px clamp(35px,6vw,89px);display:flex;flex-direction:column;color:#fff;background:#26243a}
 .aside:before{content:"";position:absolute;width:640px;height:640px;top:18%;left:-220px;border-radius:50%;background:radial-gradient(circle,rgba(142,120,255,.43),rgba(74,59,138,.05) 64%,transparent 65%)}
 .aside:after{content:"";position:absolute;width:430px;height:430px;bottom:-175px;right:-120px;border:1px solid rgba(186,174,255,.3);border-radius:50%;box-shadow:0 0 0 50px rgba(186,174,255,.025),0 0 0 100px rgba(186,174,255,.02)}
-.aside :global(.brand){position:relative;z-index:1;color:#fff}
-.aside :global(.brand)>span:last-child>span{color:#b8aaff}
+.aside :global(.brand){position:relative;z-index:1;color:#c4adff}
 .asideCopy{position:relative;z-index:1;margin:auto 0 40px}
 .asideCopy :global(.eyebrow){color:#cbc2fa}
 .asideCopy h1{margin:18px 0;color:#fff;font-size:49px;line-height:1.08;letter-spacing:-2.5px}

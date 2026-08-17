@@ -98,7 +98,7 @@ export default async function DashboardPage() {
 
   return <main className="app-dashboard">
     <aside className="app-dashboard-sidebar">
-      <Link className="app-dashboard-brand" href="/"><span className="brand-mark"><i /><i /><i /></span><span>zen<span>trix</span></span></Link>
+      <Link className="app-dashboard-brand" href="/"><span className="brand-mark"><i /><i /><i /></span><span>Varen</span></Link>
       <nav aria-label="Dashboard navigation">
         <Link className="app-sidebar-current" href="/dashboard"><span>⌂</span>Dashboard</Link>
         <Link href="/dashboard/profile"><span>👤</span>Profile</Link>

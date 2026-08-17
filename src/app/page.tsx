@@ -39,7 +39,7 @@ export default async function HomePage() {
       <nav className="landing-nav" aria-label="Primary navigation">
         <Link className="landing-brand" href="#top" aria-label="Varen home">
           <span className="landing-brand-mark"><i /><i /><i /></span>
-          <span>va<span>ren</span></span>
+          <span>Varen</span>
         </Link>
         <div className="landing-nav-links">
           <a href="#how-it-works">How it works</a>
@@ -116,7 +116,7 @@ export default async function HomePage() {
 
       <section className="landing-faq" id="faqs" aria-labelledby="faq-title"><header><p className="landing-kicker"><i /> FAQs</p><h2 id="faq-title">A few things you<br /><em>might be wondering.</em></h2><p>Everything you need to know before you start your next path.</p></header><div>{faqs.map(([question, answer]) => <details key={question}><summary>{question}<span>+</span></summary><p>{answer}</p></details>)}</div></section>
 
-      <footer className="landing-footer"><Link className="landing-brand" href="#top"><span className="landing-brand-mark"><i /><i /><i /></span><span>va<span>ren</span></span></Link><p>Learning paths for the work and life ahead.</p><span>© 2026 Varen</span></footer>
+      <footer className="landing-footer"><Link className="landing-brand" href="#top"><span className="landing-brand-mark"><i /><i /><i /></span><span>Varen</span></Link><p>Learning paths for the work and life ahead.</p><span>© 2026 Varen</span></footer>
     </main>
   );
 }
