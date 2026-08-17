@@ -7,16 +7,16 @@ import './globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
-  title: 'CourseMaster — Learn from anything. Make it yours.',
+  title: 'Zentrix — Learn from anything. Make it yours.',
   description: 'Turn goals, notes, web pages, documents, and YouTube videos into structured learning paths with quizzes, XP, streaks, and progress reports.',
   openGraph: {
-    title: 'CourseMaster — Learn from anything. Make it yours.',
+    title: 'Zentrix — Learn from anything. Make it yours.',
     description: 'Your AI learning workspace for courses built from the goals and material you already have.',
-    images: [{ url: '/og.png', width: 1730, height: 909, alt: 'CourseMaster learning workspace' }],
+    images: [{ url: '/og.png', width: 1731, height: 909, alt: 'Zentrix learning workspace' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'CourseMaster — Learn from anything. Make it yours.',
+    title: 'Zentrix — Learn from anything. Make it yours.',
     description: 'Turn goals and sources into a learning path you can finish.',
     images: ['/og.png'],
   },

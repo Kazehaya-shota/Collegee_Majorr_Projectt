@@ -48,7 +48,7 @@ function setupError() {
 }
 
 function communityBlock() {
-  return NextResponse.json({ error: 'This content can’t be shared because it may not be appropriate for CourseMaster.', blocked: true }, { status: 422 });
+  return NextResponse.json({ error: 'This content can’t be shared because it may not be appropriate for Zentrix.', blocked: true }, { status: 422 });
 }
 
 async function contentBlocked(kind: string, title: string, content: string) {

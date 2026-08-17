@@ -74,7 +74,7 @@ export async function POST(request: Request) {
     if (action === 'update_group') {
       const title = text(body.title, 80); const topic = text(body.topic, 80); const description = text(body.description, 300); const visibility = text(body.visibility, 10) === 'private' ? 'private' : 'public'; const capacity = Math.min(250, Math.max(2, Number(body.capacity) || 30));
       if (!await ownRecord(supabase, 'community_groups', id, userId) || title.length < 3 || topic.length < 2 || description.length < 10) return NextResponse.json({ error: 'Add valid group details.' }, { status: 400 });
-      if (await moderationBlocked('study group', `${title} · ${topic}`, description)) return NextResponse.json({ error: 'These group details can’t be shared because they may not be appropriate for CourseMaster.', blocked: true }, { status: 422 });
+      if (await moderationBlocked('study group', `${title} · ${topic}`, description)) return NextResponse.json({ error: 'These group details can’t be shared because they may not be appropriate for Zentrix.', blocked: true }, { status: 422 });
       const { error } = await supabase.from('community_groups').update({ title, topic, description, visibility, capacity }).eq('id', id).eq('created_by', userId);
       if (error) throw error;
     } else if (action === 'delete_group') {
@@ -84,7 +84,7 @@ export async function POST(request: Request) {
     } else if (action === 'update_room') {
       const title = text(body.title, 80); const topic = text(body.topic, 80); const description = text(body.description, 300);
       if (!await ownRecord(supabase, 'community_rooms', id, userId) || title.length < 3 || topic.length < 2 || description.length < 10) return NextResponse.json({ error: 'Add valid room details.' }, { status: 400 });
-      if (await moderationBlocked('study room', `${title} · ${topic}`, description)) return NextResponse.json({ error: 'These room details can’t be shared because they may not be appropriate for CourseMaster.', blocked: true }, { status: 422 });
+      if (await moderationBlocked('study room', `${title} · ${topic}`, description)) return NextResponse.json({ error: 'These room details can’t be shared because they may not be appropriate for Zentrix.', blocked: true }, { status: 422 });
       const { error } = await supabase.from('community_rooms').update({ title, topic, description }).eq('id', id).eq('created_by', userId);
       if (error) throw error;
     } else if (action === 'delete_room') {

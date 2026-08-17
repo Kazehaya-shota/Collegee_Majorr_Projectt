@@ -1,6 +1,6 @@
-# CourseMaster
+# Zentrix
 
-CourseMaster is an AI-powered, source-aware learning-path application built as a college major project.
+Zentrix is an AI-powered, source-aware learning-path application built as a college major project.
 
 ## Local setup
 

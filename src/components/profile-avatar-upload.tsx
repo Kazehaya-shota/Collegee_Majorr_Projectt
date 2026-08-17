@@ -35,7 +35,7 @@ async function makeProfilePhoto(file: File) {
     context.drawImage(source, cropX, cropY, cropSize, cropSize, 0, 0, PHOTO_SIZE, PHOTO_SIZE);
     const imageBlob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.92));
     if (!imageBlob) throw new Error('Your browser could not prepare this image.');
-    return new File([imageBlob], 'coursemaster-profile.jpg', { type: 'image/jpeg' });
+    return new File([imageBlob], 'zentrix-profile.jpg', { type: 'image/jpeg' });
   } finally {
     URL.revokeObjectURL(sourceUrl);
   }

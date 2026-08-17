@@ -94,7 +94,7 @@ export function LandingPlanner({ compact = false, restoreIngestedSources = false
     if (!restoreIngestedSources || hasRestoredIngestedSources.current) return;
     hasRestoredIngestedSources.current = true;
     try {
-      const stored = window.sessionStorage.getItem('coursemaster-ingestion-sources');
+      const stored = window.sessionStorage.getItem('zentrix-ingestion-sources');
       if (!stored) return;
       const parsed = JSON.parse(stored) as unknown;
       if (!Array.isArray(parsed)) return;
@@ -106,7 +106,7 @@ export function LandingPlanner({ compact = false, restoreIngestedSources = false
         setTopic(inferredTopic);
         setIsSourceDriven(true);
         setCoachFeedback('Creating a course directly from your prepared material. You can adjust it once the first draft is ready.');
-        window.sessionStorage.removeItem('coursemaster-ingestion-sources');
+        window.sessionStorage.removeItem('zentrix-ingestion-sources');
         void generatePath(inferredTopic, restored);
       }, 0);
       return () => window.clearTimeout(restoreTimer);
@@ -156,11 +156,11 @@ export function LandingPlanner({ compact = false, restoreIngestedSources = false
   }
 
   return <>
-    {(isGenerating || isIngesting || isSaving || isCoaching) && <ProgressLoader title={isGenerating ? 'Designing your learning path' : isIngesting ? 'Reading your source material' : isSaving ? 'Saving your learning path' : 'Updating your course plan'} detail={isGenerating ? 'Sequencing the right concepts, practice, and pace for you.' : isIngesting ? 'Finding the key ideas CourseMaster should learn from.' : isSaving ? 'Adding your new path to your learning space.' : 'Applying your coach’s feedback to the course structure.'} />}
+    {(isGenerating || isIngesting || isSaving || isCoaching) && <ProgressLoader title={isGenerating ? 'Designing your learning path' : isIngesting ? 'Reading your source material' : isSaving ? 'Saving your learning path' : 'Updating your course plan'} detail={isGenerating ? 'Sequencing the right concepts, practice, and pace for you.' : isIngesting ? 'Finding the key ideas Zentrix should learn from.' : isSaving ? 'Adding your new path to your learning space.' : 'Applying your coach’s feedback to the course structure.'} />}
     <section className={`planner-section${compact ? ' planner-compact' : ''}`} id="planner">
       {!compact && <div className="section-heading"><div className="eyebrow dark"><span>01</span> CREATE YOUR PATH</div><h2>What would you like<br />to <em>get good at?</em></h2><p>A few thoughtful inputs make a dramatically better course.</p></div>}
       <div className="planner-card"><div className="planner-steps"><span className="current">1. Your goal</span><i /><span>2. Your context</span><i /><span>3. Sources</span></div><form onSubmit={buildPath}>
-        {isSourceDriven ? <div className="source-driven-planner"><span>CONTENT-DRIVEN COURSE</span><strong>Building from your prepared material</strong><p>{topic}</p><small>CourseMaster is using your resource as the syllabus. No extra setup needed.</small></div> : <>
+        {isSourceDriven ? <div className="source-driven-planner"><span>CONTENT-DRIVEN COURSE</span><strong>Building from your prepared material</strong><p>{topic}</p><small>Zentrix is using your resource as the syllabus. No extra setup needed.</small></div> : <>
           <label htmlFor="topic">I want to learn</label>
           <div className="topic-input"><input id="topic" value={topic} onChange={(event) => setTopic(event.target.value)} /><button type="submit" aria-label="Generate path" disabled={isGenerating}>→</button></div>
           <div className="chips">{suggestions.map((suggestion) => <button type="button" key={suggestion} onClick={() => setTopic(suggestion)}>{suggestion}</button>)}</div>

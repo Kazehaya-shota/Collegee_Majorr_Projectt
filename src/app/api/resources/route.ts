@@ -51,7 +51,7 @@ async function ensureProfile(userId: string) {
 }
 
 function moderationBlock() {
-  return NextResponse.json({ error: 'This resource can’t be shared because it may not be appropriate for CourseMaster.', blocked: true }, { status: 422 });
+  return NextResponse.json({ error: 'This resource can’t be shared because it may not be appropriate for Zentrix.', blocked: true }, { status: 422 });
 }
 
 async function reviewMaterial(kind: string, title: string, content: string) {
@@ -169,7 +169,7 @@ export async function POST(request: Request) {
       const resourceId = text(body.resourceId, 80); const content = text(body.content, 1200);
       if (!resourceId || content.length < 2) return NextResponse.json({ error: 'Write a useful comment first.' }, { status: 400 });
       const commentReview = await reviewMaterial('resource discussion comment', 'Resource Exchange comment', content);
-      if (commentReview.decision === 'block') return NextResponse.json({ error: 'This comment can’t be shared because it may not be appropriate for CourseMaster.', blocked: true }, { status: 422 });
+      if (commentReview.decision === 'block') return NextResponse.json({ error: 'This comment can’t be shared because it may not be appropriate for Zentrix.', blocked: true }, { status: 422 });
       const { error } = await supabase.from('community_resource_comments').insert({ resource_id: resourceId, author_id: userId, body: content });
       if (error) throw error;
     } else return NextResponse.json({ error: 'That Resource Exchange action is not available.' }, { status: 400 });

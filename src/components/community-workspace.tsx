@@ -119,7 +119,7 @@ export function CommunityWorkspace({ initialTab = 'rooms', standalone = false }:
   }
 
   return <section className="community-workspace">
-    <header className="community-hero"><div><p className="eyebrow dark"><span>COURSEMASTER COMMUNITY</span> LEARN BETTER TOGETHER</p><h1>Find your <em>learning people.</em></h1><p>Ask, challenge, build, and show up for what you&apos;re learning—with learners who are doing the same.</p></div><aside><span>◌</span><strong>Built for momentum.</strong><p>Every room, challenge, and event is a small reason to keep going.</p></aside></header>
+    <header className="community-hero"><div><p className="eyebrow dark"><span>ZENTRIX COMMUNITY</span> LEARN BETTER TOGETHER</p><h1>Find your <em>learning people.</em></h1><p>Ask, challenge, build, and show up for what you&apos;re learning—with learners who are doing the same.</p></div><aside><span>◌</span><strong>Built for momentum.</strong><p>Every room, challenge, and event is a small reason to keep going.</p></aside></header>
     {!standalone && <nav className="community-tabs" aria-label="Community sections"><button className={tab === 'rooms' ? 'is-active' : ''} onClick={() => { setTab('rooms'); setShowCreate(false); }}><span>◌</span>Study Rooms</button><button className={tab === 'challenges' ? 'is-active' : ''} onClick={() => { setTab('challenges'); setShowCreate(false); }}><span>⚑</span>Challenge Together</button><button className={tab === 'events' ? 'is-active' : ''} onClick={() => { setTab('events'); setShowCreate(false); }}><span>◇</span>Events &amp; Hackathons</button></nav>}
     {loading ? <ProgressLoader title="Opening the Community" detail="Gathering rooms, challenges, and events around you." /> : <>
       {notice && <p className="community-notice">✦ {notice}</p>}

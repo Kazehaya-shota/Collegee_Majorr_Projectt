@@ -19,7 +19,7 @@ export async function requestCourseDraft(prompt: string, maxTokens = 6_000) {
   const response = await client.messages.create({
     model: process.env.ANTHROPIC_MODEL || defaultModel,
     max_tokens: maxTokens,
-    system: 'You are CourseMaster, an expert instructional designer. Create structured, practical learning plans. Do not invent sources or claims.',
+    system: 'You are Zentrix, an expert instructional designer. Create structured, practical learning plans. Do not invent sources or claims.',
     messages: [{ role: 'user', content: prompt }],
   });
 
@@ -37,7 +37,7 @@ function readModerationJson(value: string): CommunityModerationResult {
   try {
     const parsed = JSON.parse(candidate.slice(start, end + 1)) as { decision?: unknown; reason?: unknown };
     if (parsed.decision === 'allow') return { decision: 'allow', reason: '' };
-    return { decision: 'block', reason: typeof parsed.reason === 'string' ? parsed.reason.slice(0, 180) : 'This content may not be appropriate for CourseMaster.' };
+    return { decision: 'block', reason: typeof parsed.reason === 'string' ? parsed.reason.slice(0, 180) : 'This content may not be appropriate for Zentrix.' };
   } catch {
     return { decision: 'block', reason: 'This content could not be safely reviewed.' };
   }

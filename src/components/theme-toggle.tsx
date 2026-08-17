@@ -4,13 +4,13 @@ import { useSyncExternalStore } from 'react';
 
 type Theme = 'light' | 'dark';
 
-const storageKey = 'coursemaster-theme';
+const storageKey = 'zentrix-theme';
 
 export function ThemeToggle() {
   const theme = useSyncExternalStore(
     (onStoreChange) => {
-      window.addEventListener('coursemaster-theme-change', onStoreChange);
-      return () => window.removeEventListener('coursemaster-theme-change', onStoreChange);
+      window.addEventListener('zentrix-theme-change', onStoreChange);
+      return () => window.removeEventListener('zentrix-theme-change', onStoreChange);
     },
     () => window.localStorage.getItem(storageKey) === 'dark' ? 'dark' : 'light',
     () => 'light',
@@ -20,7 +20,7 @@ export function ThemeToggle() {
     const nextTheme: Theme = theme === 'light' ? 'dark' : 'light';
     document.documentElement.dataset.theme = nextTheme;
     window.localStorage.setItem(storageKey, nextTheme);
-    window.dispatchEvent(new Event('coursemaster-theme-change'));
+    window.dispatchEvent(new Event('zentrix-theme-change'));
   }
 
   const isDark = theme === 'dark';

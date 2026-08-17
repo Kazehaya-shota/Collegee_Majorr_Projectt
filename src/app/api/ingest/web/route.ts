@@ -43,7 +43,7 @@ async function readDirect(urlText: string) {
     headers: {
       Accept: 'text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.8',
       'Accept-Language': 'en-US,en;q=0.9',
-      'User-Agent': 'Mozilla/5.0 (compatible; CourseMaster/1.0; learning-source reader)',
+      'User-Agent': 'Mozilla/5.0 (compatible; Zentrix/1.0; learning-source reader)',
     },
     signal: AbortSignal.timeout(12_000),
     cache: 'no-store',
