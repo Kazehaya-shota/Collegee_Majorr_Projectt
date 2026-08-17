@@ -1,5 +1,7 @@
 'use client';
 
+/* eslint-disable @next/next/no-img-element -- YouTube thumbnail hosts are dynamic and are intentionally not proxied. */
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { CourseSource } from '@/lib/course-sources';

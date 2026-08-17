@@ -1,5 +1,7 @@
 'use client';
 
+/* eslint-disable @next/next/no-img-element -- Licensed Openverse URLs are dynamic and intentionally rendered without proxying. */
+
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProgressLoader } from '@/components/progress-loader';

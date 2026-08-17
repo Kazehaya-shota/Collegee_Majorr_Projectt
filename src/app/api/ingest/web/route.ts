@@ -1,18 +1,8 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
+import { fetchPublicWebPage, parsePublicWebUrl } from '@/lib/safe-public-url';
 
 const MAX_SOURCE_CHARS = 5_000;
-
-function isPublicWebUrl(value: string) {
-  try {
-    const url = new URL(value);
-    if (!['http:', 'https:'].includes(url.protocol)) return false;
-    const hostname = url.hostname.toLowerCase();
-    return hostname !== 'localhost' && hostname !== '::1' && !hostname.startsWith('127.') && !hostname.startsWith('10.') && !hostname.startsWith('192.168.') && !hostname.startsWith('169.254.') && !hostname.endsWith('.local');
-  } catch {
-    return false;
-  }
-}
 
 function cleanText(html: string) {
   return html
@@ -49,18 +39,16 @@ function cleanReaderText(value: string) {
 }
 
 async function readDirect(urlText: string) {
-  const response = await fetch(urlText, {
+  const { response, url } = await fetchPublicWebPage(urlText, {
     headers: {
       Accept: 'text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.8',
       'Accept-Language': 'en-US,en;q=0.9',
       'User-Agent': 'Mozilla/5.0 (compatible; CourseMaster/1.0; learning-source reader)',
     },
-    redirect: 'follow',
     signal: AbortSignal.timeout(12_000),
     cache: 'no-store',
   });
   if (!response.ok) throw new Error(`The website returned ${response.status}.`);
-  if (!isPublicWebUrl(response.url)) throw new Error('That link redirected to an unsupported location.');
   const contentType = response.headers.get('content-type') ?? '';
   if (!contentType.includes('text/html') && !contentType.includes('text/plain')) {
     if (contentType.includes('pdf')) throw new Error('This is a PDF. Upload or paste its text for now; PDF reading is the next ingestion upgrade.');
@@ -69,8 +57,7 @@ async function readDirect(urlText: string) {
   const html = (await response.text()).slice(0, 350_000);
   const sourceText = cleanText(html);
   if (sourceText.length < 120) throw new Error('There was not enough readable text on that page.');
-  const finalUrl = new URL(response.url);
-  return { label: pageTitle(html, finalUrl.hostname.replace(/^www\./, '')), url: finalUrl.toString(), sourceText, characterCount: sourceText.length, readerFallback: false };
+  return { label: pageTitle(html, url.hostname.replace(/^www\./, '')), url: url.toString(), sourceText, characterCount: sourceText.length, readerFallback: false };
 }
 
 async function readWithArticleReader(urlText: string) {
@@ -80,7 +67,7 @@ async function readWithArticleReader(urlText: string) {
   const sourceText = cleanReaderText(markdown);
   if (sourceText.length < 120) throw new Error('There was not enough readable text on that page.');
   const title = markdown.match(/^Title:\s*(.+)$/im)?.[1]?.trim().slice(0, 120);
-  const url = new URL(urlText);
+  const url = parsePublicWebUrl(urlText);
   return { label: title || url.hostname.replace(/^www\./, ''), url: url.toString(), sourceText, characterCount: sourceText.length, readerFallback: true };
 }
 
@@ -94,13 +81,13 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ error: 'Please send a valid web link.' }, { status: 400 });
   }
-  if (!isPublicWebUrl(urlText)) return NextResponse.json({ error: 'Use a public http or https web link.' }, { status: 400 });
+  try { parsePublicWebUrl(urlText); } catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : 'Use a public http or https web link.' }, { status: 400 }); }
 
   try {
     return NextResponse.json(await readDirect(urlText));
   } catch (directError) {
     const directMessage = directError instanceof Error ? directError.message : 'The page blocked direct reading.';
-    if (directMessage.includes('PDF') || directMessage.includes('download or media') || directMessage.includes('unsupported location')) return NextResponse.json({ error: directMessage }, { status: 422 });
+    if (directMessage.includes('PDF') || directMessage.includes('download or media') || directMessage.includes('local or private') || directMessage.includes('does not resolve') || directMessage.includes('redirect')) return NextResponse.json({ error: directMessage }, { status: 422 });
     try {
       return NextResponse.json(await readWithArticleReader(urlText));
     } catch (readerError) {

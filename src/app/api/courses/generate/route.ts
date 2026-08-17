@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
+import { auth } from '@clerk/nextjs/server';
 import { requestCourseDraft } from '@/lib/ai/claude';
+import { AiRateLimitSetupError, aiRateLimitMessage, consumeAiRequest } from '@/lib/ai/rate-limit';
 import { parseCourseDraft } from '@/lib/course-draft';
 import { parseCourseSources } from '@/lib/course-sources';
 
@@ -37,6 +39,8 @@ function getSafeErrorMessage(error: unknown) {
 }
 
 export async function POST(request: Request) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: 'Create a free account to generate and save a learning path.' }, { status: 401 });
   let body: GenerateRequest;
   try {
     body = await request.json();
@@ -59,12 +63,14 @@ export async function POST(request: Request) {
   const prompt = `Create a personalized course roadmap for this learner.\n\nTopic: ${topic}\nCurrent level: ${level}\nAvailable time: ${timePerDay}\n\nUser-provided source context:\n${sourceContext}\n\n${sourceGuidance}\n\nThe course must be practical, have 4 to 7 modules, progress from foundations to application, and give each module an achievable time estimate. Do not claim to have verified a source or accessed information outside the source context provided here.\n\nReturn ONLY valid JSON in this exact shape:\n{\n  "title": "string",\n  "summary": "string, maximum 180 characters",\n  "estimatedMinutes": 180,\n  "modules": [\n    { "title": "string", "description": "string, maximum 110 characters", "estimatedMinutes": 25 }\n  ]\n}`;
 
   try {
+    if (!await consumeAiRequest(userId, 'course_generation')) return NextResponse.json({ error: aiRateLimitMessage('course_generation') }, { status: 429 });
     const response = await requestCourseDraft(prompt);
     const output = response.content.filter((block) => block.type === 'text').map((block) => block.text).join('\n');
     const draft = parseCourseDraft(JSON.parse(extractJson(output)));
     return NextResponse.json({ draft });
   } catch (error) {
     console.error('Course generation failed', error);
+    if (error instanceof AiRateLimitSetupError) return NextResponse.json({ error: error.message }, { status: 503 });
     return NextResponse.json({ error: getSafeErrorMessage(error) }, { status: 502 });
   }
 }

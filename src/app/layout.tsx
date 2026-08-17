@@ -3,6 +3,8 @@ import { ClerkProvider } from '@clerk/nextjs';
 import { LearningCoach } from '@/components/learning-coach';
 import './globals.css';
 
+/* eslint-disable @next/next/no-page-custom-font -- These fonts remain browser-loaded so offline builds do not depend on Google Fonts. */
+
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   title: 'CourseMaster — Learn from anything. Make it yours.',

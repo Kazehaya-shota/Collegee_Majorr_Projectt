@@ -1,6 +1,7 @@
 'use client';
 
-import { FormEvent, useEffect, useRef, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { CourseDraft } from '@/lib/course-draft';
 import type { CourseSource } from '@/lib/course-sources';
 import { DOCUMENT_ACCEPT, MAX_DOCUMENT_MB, readDocument } from '@/lib/document-ingestion';
@@ -17,6 +18,7 @@ const placeholderModules = [
 ];
 
 export function LandingPlanner({ compact = false, restoreIngestedSources = false }: { compact?: boolean; restoreIngestedSources?: boolean }) {
+  const router = useRouter();
   const [topic, setTopic] = useState('Design systems for product teams');
   const [level, setLevel] = useState('Some experience');
   const [timePerDay, setTimePerDay] = useState('20 minutes a day');
@@ -35,31 +37,6 @@ export function LandingPlanner({ compact = false, restoreIngestedSources = false
   const [isSourceDriven, setIsSourceDriven] = useState(false);
   const hasRestoredIngestedSources = useRef(false);
   const modules = draft?.modules ?? placeholderModules.map(([number, title, description]) => ({ number, title, description, estimatedMinutes: 25 }));
-
-  useEffect(() => {
-    if (!restoreIngestedSources || hasRestoredIngestedSources.current) return;
-    hasRestoredIngestedSources.current = true;
-    try {
-      const stored = window.sessionStorage.getItem('coursemaster-ingestion-sources');
-      if (!stored) return;
-      const parsed = JSON.parse(stored) as unknown;
-      if (!Array.isArray(parsed)) return;
-      const restored = parsed.filter((source): source is CourseSource => Boolean(source) && typeof source === 'object' && Boolean((source as CourseSource).label) && Boolean((source as CourseSource).sourceText)).slice(0, 5);
-      if (!restored.length) return;
-      const inferredTopic = restored[0].label;
-      const restoreTimer = window.setTimeout(() => {
-        setSources(restored);
-        setTopic(inferredTopic);
-        setIsSourceDriven(true);
-        setCoachFeedback('Creating a course directly from your prepared material. You can adjust it once the first draft is ready.');
-        window.sessionStorage.removeItem('coursemaster-ingestion-sources');
-        void generatePath(inferredTopic, restored);
-      }, 0);
-      return () => window.clearTimeout(restoreTimer);
-    } catch {
-      // The generator still works normally if a prior browser session cannot be restored.
-    }
-  }, [restoreIngestedSources]);
 
   async function addSource() {
     const value = sourceValue.trim();
@@ -99,7 +76,7 @@ export function LandingPlanner({ compact = false, restoreIngestedSources = false
     } finally { setIsIngesting(false); }
   }
 
-  async function generatePath(nextTopic = topic, nextSources = sources) {
+  const generatePath = useCallback(async (nextTopic = topic, nextSources = sources) => {
     setError('');
     setIsGenerating(true);
     try {
@@ -111,7 +88,32 @@ export function LandingPlanner({ compact = false, restoreIngestedSources = false
     } catch (generationError) {
       setError(generationError instanceof Error ? generationError.message : 'Course generation failed.');
     } finally { setIsGenerating(false); }
-  }
+  }, [level, sources, timePerDay, topic]);
+
+  useEffect(() => {
+    if (!restoreIngestedSources || hasRestoredIngestedSources.current) return;
+    hasRestoredIngestedSources.current = true;
+    try {
+      const stored = window.sessionStorage.getItem('coursemaster-ingestion-sources');
+      if (!stored) return;
+      const parsed = JSON.parse(stored) as unknown;
+      if (!Array.isArray(parsed)) return;
+      const restored = parsed.filter((source): source is CourseSource => Boolean(source) && typeof source === 'object' && Boolean((source as CourseSource).label) && Boolean((source as CourseSource).sourceText)).slice(0, 5);
+      if (!restored.length) return;
+      const inferredTopic = restored[0].label;
+      const restoreTimer = window.setTimeout(() => {
+        setSources(restored);
+        setTopic(inferredTopic);
+        setIsSourceDriven(true);
+        setCoachFeedback('Creating a course directly from your prepared material. You can adjust it once the first draft is ready.');
+        window.sessionStorage.removeItem('coursemaster-ingestion-sources');
+        void generatePath(inferredTopic, restored);
+      }, 0);
+      return () => window.clearTimeout(restoreTimer);
+    } catch {
+      // The generator still works normally if a prior browser session cannot be restored.
+    }
+  }, [generatePath, restoreIngestedSources]);
 
   async function buildPath(event: FormEvent<HTMLFormElement>) { event.preventDefault(); await generatePath(); }
 
@@ -123,7 +125,7 @@ export function LandingPlanner({ compact = false, restoreIngestedSources = false
       const response = await fetch('/api/courses', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ draft, topic, level, timePerDay, sources }) });
       const result = await response.json() as { courseId?: string; error?: string };
       if (!response.ok || !result.courseId) throw new Error(result.error || 'Course saving failed.');
-      window.location.assign('/learning-path');
+      router.push('/learning-path');
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : 'Course saving failed.');
     } finally { setIsSaving(false); }
