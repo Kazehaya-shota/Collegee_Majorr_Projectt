@@ -799,3 +799,6 @@ html[data-theme='dark'] .report-control>button,html[data-theme='dark'] .communit
 /* Varen identity: typography only. */
 .app-dashboard-brand { gap:0; color:#7049cf; font-size:22px; letter-spacing:-1.25px; }.app-dashboard-brand .brand-mark { display:none; }
 html[data-theme='dark'] .app-dashboard-brand { color:#c4adff; }
+
+/* Preserve contrast inside the dark course preview on the light landing page. */
+.landing-v3 .landing-device h2 { color:#fdfbff; }
