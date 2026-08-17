@@ -1,4 +1,4 @@
--- CourseMaster's application data is linked to Clerk by the stable Clerk user ID.
+-- Varen's application data is linked to Clerk by the stable Clerk user ID.
 -- Run this whole file in the Supabase SQL Editor after creating your project.
 
 create table if not exists public.profiles (

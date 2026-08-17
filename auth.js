@@ -10,7 +10,7 @@ const clerkAuth = document.querySelector('#clerk-auth');
 
 function setMode(mode) {
   const signIn = mode === 'sign-in';
-  document.title = signIn ? 'Sign in to CourseMaster' : 'Join CourseMaster';
+  document.title = signIn ? 'Sign in to Varen' : 'Join Varen';
   authTabs.forEach((tab) => {
     const active = tab.dataset.mode === mode;
     tab.classList.toggle('active', active);
@@ -22,9 +22,9 @@ function setMode(mode) {
   authDescription.textContent = signIn
     ? 'Pick up your learning path exactly where you left off.'
     : 'Keep every learning path, practice result, and small win in one place.';
-  authSubmit.innerHTML = signIn ? 'Sign in to CourseMaster <span>→</span>' : 'Create my account <span>→</span>';
+  authSubmit.innerHTML = signIn ? 'Sign in to Varen <span>→</span>' : 'Create my account <span>→</span>';
   document.querySelector('#auth-switch').innerHTML = signIn
-    ? 'New to CourseMaster? <button type="button" data-switch-mode="sign-up">Join free</button>'
+    ? 'New to Varen? <button type="button" data-switch-mode="sign-up">Join free</button>'
     : 'Already learning with us? <button type="button" data-switch-mode="sign-in">Sign in instead</button>';
 }
 
@@ -60,7 +60,7 @@ document.querySelector('#auth-form').addEventListener('submit', (event) => {
 });
 
 async function mountClerk() {
-  const publishableKey = window.COURSEMASTER_CLERK_PUBLISHABLE_KEY;
+  const publishableKey = window.VAREN_CLERK_PUBLISHABLE_KEY;
   if (!publishableKey) return;
 
   try {

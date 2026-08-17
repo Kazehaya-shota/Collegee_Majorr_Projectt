@@ -16,7 +16,7 @@ function learnerName(person: { firstName: string | null; lastName: string | null
   const lastInitial = person.lastName?.trim().slice(0, 1);
 
   if (firstName) return `${firstName}${lastInitial ? ` ${lastInitial}.` : ''}`;
-  return person.username?.trim() || 'Zentrix learner';
+  return person.username?.trim() || 'Varen learner';
 }
 
 function initial(name: string) {
@@ -44,11 +44,11 @@ export async function GlobalLeaderboard({ currentUserId }: { currentUserId: stri
         const person = await clerk.users.getUser(row.user_id);
         return [row.user_id, learnerName(person)] as const;
       } catch {
-        return [row.user_id, 'Zentrix learner'] as const;
+        return [row.user_id, 'Varen learner'] as const;
       }
     }));
     const nameByUserId = new Map(names);
-    leaderboard = rows.map((row) => ({ ...row, name: nameByUserId.get(row.user_id) || 'Zentrix learner' }));
+    leaderboard = rows.map((row) => ({ ...row, name: nameByUserId.get(row.user_id) || 'Varen learner' }));
   } catch (error) {
     console.error('Global leaderboard loading failed', error);
   }

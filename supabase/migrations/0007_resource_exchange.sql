@@ -1,5 +1,5 @@
--- CourseMaster Resource Exchange: signed-in learners can share and discuss learning resources.
--- Run after the earlier CourseMaster and Community migrations.
+-- Varen Resource Exchange: signed-in learners can share and discuss learning resources.
+-- Run after the earlier Varen and Community migrations.
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (

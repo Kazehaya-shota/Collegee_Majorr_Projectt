@@ -1,4 +1,4 @@
--- CourseMaster Community Space: discoverable study groups and membership.
+-- Varen Community Space: discoverable study groups and membership.
 -- Run this after 0005_community.sql in Supabase SQL Editor.
 
 create table if not exists public.community_groups (

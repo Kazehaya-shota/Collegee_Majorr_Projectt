@@ -1,4 +1,4 @@
--- CourseMaster learning engine: generated lessons, quizzes, XP, levels, and streaks.
+-- Varen learning engine: generated lessons, quizzes, XP, levels, and streaks.
 -- Run this file in the Supabase SQL Editor after 0001_course_master_schema.sql.
 
 alter table public.course_modules add column if not exists lesson_content jsonb;

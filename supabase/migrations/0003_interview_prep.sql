@@ -1,4 +1,4 @@
--- CourseMaster interview-prep sessions and interview XP.
+-- Varen interview-prep sessions and interview XP.
 -- Run this file in Supabase SQL Editor after the previous two migrations.
 
 create table if not exists public.interview_sessions (

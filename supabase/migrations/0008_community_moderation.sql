@@ -1,4 +1,4 @@
--- CourseMaster Community Space: reports and owner moderation queues.
+-- Varen Community Space: reports and owner moderation queues.
 -- Run after the previous Community and Resource Exchange migrations.
 
 create table if not exists public.community_reports (

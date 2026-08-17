@@ -1,5 +1,5 @@
--- CourseMaster Learning Coach conversation history.
--- Run this file in the Supabase SQL Editor after the earlier CourseMaster migrations.
+-- Varen Learning Coach conversation history.
+-- Run this file in the Supabase SQL Editor after the earlier Varen migrations.
 
 create table if not exists public.coach_messages (
   id uuid primary key default gen_random_uuid(),

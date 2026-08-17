@@ -1,5 +1,5 @@
--- CourseMaster Community: study rooms, quiz challenges, and events.
--- Run this file in the Supabase SQL Editor after the earlier CourseMaster migrations.
+-- Varen Community: study rooms, quiz challenges, and events.
+-- Run this file in the Supabase SQL Editor after the earlier Varen migrations.
 
 create table if not exists public.community_rooms (
   id uuid primary key default gen_random_uuid(),

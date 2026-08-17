@@ -1,5 +1,5 @@
--- CourseMaster AI request limits.
--- Run after the earlier CourseMaster migrations.
+-- Varen AI request limits.
+-- Run after the earlier Varen migrations.
 
 create table if not exists public.ai_request_limits (
   user_id text not null references public.profiles(clerk_user_id) on delete cascade,

@@ -1,6 +1,6 @@
-# Zentrix
+# Varen
 
-Zentrix is an AI-powered, source-aware learning-path application built as a college major project.
+Varen is an AI-powered, source-aware learning-path application built as a college major project.
 
 ## Local setup
 
