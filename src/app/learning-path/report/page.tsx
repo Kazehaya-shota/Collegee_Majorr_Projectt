@@ -29,9 +29,8 @@ function activityLabel(activity: ActivityRow) {
 }
 
 export default async function LearningReportPage() {
-  const { userId } = await auth();
+  const [{ userId }, user] = await Promise.all([auth(), currentUser()]);
   if (!userId) redirect('/sign-in');
-  const user = await currentUser();
   const firstName = user?.firstName || user?.username || 'there';
   let stats: LearnerStats = { totalXp: 0, level: 1, currentStreak: 0, longestStreak: 0 };
   let courses: CourseRow[] = [];
@@ -42,8 +41,12 @@ export default async function LearningReportPage() {
 
   try {
     const supabase = createSupabaseAdminClient();
-    const { data: courseData, error: coursesError } = await supabase.from('courses').select('id, title, topic, estimated_minutes, created_at').eq('owner_id', userId).order('updated_at', { ascending: false });
+    const [{ data: courseData, error: coursesError }, learnerStats] = await Promise.all([
+      supabase.from('courses').select('id, title, topic, estimated_minutes, created_at').eq('owner_id', userId).order('updated_at', { ascending: false }),
+      getLearnerStats(supabase, userId),
+    ]);
     if (coursesError) throw coursesError;
+    stats = learnerStats;
     courses = (courseData ?? []) as CourseRow[];
     const courseIds = courses.map((course) => course.id);
     const { data: moduleData, error: modulesError } = courseIds.length ? await supabase.from('course_modules').select('id, course_id, estimated_minutes, title').in('course_id', courseIds) : { data: [], error: null };
@@ -57,7 +60,6 @@ export default async function LearningReportPage() {
     if (progressError || activityError) throw progressError || activityError;
     progressRows = (progressData ?? []) as ProgressRow[];
     activities = (activityData ?? []) as ActivityRow[];
-    stats = await getLearnerStats(supabase, userId);
   } catch (error) {
     console.error('Learning report loading failed', error);
     loadError = true;

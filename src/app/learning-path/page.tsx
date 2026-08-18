@@ -13,9 +13,8 @@ type ProgressRow = { module_id: string; status: 'not_started' | 'completed' };
 type CourseWithProgress = SavedCourse & { moduleCount: number; completedCount: number };
 
 export default async function LearningPathPage() {
-  const { userId } = await auth();
+  const [{ userId }, user] = await Promise.all([auth(), currentUser()]);
   if (!userId) redirect('/sign-in');
-  const user = await currentUser();
   const firstName = user?.firstName || user?.username || 'there';
   let courses: CourseWithProgress[] = [];
   let isDatabaseReady = true;
@@ -23,8 +22,12 @@ export default async function LearningPathPage() {
 
   try {
     const supabase = createSupabaseAdminClient();
-    const { data, error } = await supabase.from('courses').select('id, title, summary, topic, estimated_minutes, status').eq('owner_id', userId).order('updated_at', { ascending: false });
+    const [{ data, error }, learnerStats] = await Promise.all([
+      supabase.from('courses').select('id, title, summary, topic, estimated_minutes, status').eq('owner_id', userId).order('updated_at', { ascending: false }),
+      getLearnerStats(supabase, userId),
+    ]);
     if (error) throw error;
+    stats = learnerStats;
     const savedCourses = (data ?? []) as SavedCourse[];
     const courseIds = savedCourses.map((course) => course.id);
     const { data: modules, error: modulesError } = courseIds.length ? await supabase.from('course_modules').select('id, course_id').in('course_id', courseIds) : { data: [], error: null };
@@ -35,7 +38,6 @@ export default async function LearningPathPage() {
     if (progressError) throw progressError;
     const completedModules = new Set((progress as ProgressRow[] ?? []).filter((item) => item.status === 'completed').map((item) => item.module_id));
     courses = savedCourses.map((course) => { const courseModules = moduleRows.filter((module) => module.course_id === course.id); return { ...course, moduleCount: courseModules.length, completedCount: courseModules.filter((module) => completedModules.has(module.id)).length }; });
-    stats = await getLearnerStats(supabase, userId);
   } catch (error) {
     console.error('Learning path loading failed', error);
     isDatabaseReady = false;

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { UserButton } from '@clerk/nextjs';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 import { ProductSwitcher } from '@/components/product-switcher';
 import { StudySprintGame } from '@/components/study-sprint-game';
 import { GlobalLeaderboard } from '@/components/global-leaderboard';
@@ -45,11 +46,17 @@ function courseInitial(title: string) {
   return title.trim().slice(0, 1).toUpperCase() || '✦';
 }
 
+function LeaderboardFallback() {
+  return <article className="app-leaderboard-card app-leaderboard-loading" aria-busy="true" aria-label="Loading global leaderboard">
+    <header><div><p>GLOBAL LEADERBOARD</p><h2>Learning leaders.</h2></div><span>LOADING</span></header>
+    <div className="leaderboard-loading-lines"><i /><i /><i /></div>
+  </article>;
+}
+
 export default async function DashboardPage() {
-  const { userId } = await auth();
+  const [{ userId }, user] = await Promise.all([auth(), currentUser()]);
   if (!userId) redirect('/sign-in');
 
-  const user = await currentUser();
   const firstName = user?.firstName || user?.username || 'there';
   let courses: CourseRow[] = [];
   let modules: ModuleRow[] = [];
@@ -58,14 +65,18 @@ export default async function DashboardPage() {
 
   try {
     const supabase = createSupabaseAdminClient();
-    const { data: courseData, error: courseError } = await supabase
-      .from('courses')
-      .select('id, title, summary, topic, estimated_minutes, created_at')
-      .eq('owner_id', userId)
-      .order('updated_at', { ascending: false })
-      .limit(6);
+    const [{ data: courseData, error: courseError }, learnerStats] = await Promise.all([
+      supabase
+        .from('courses')
+        .select('id, title, summary, topic, estimated_minutes, created_at')
+        .eq('owner_id', userId)
+        .order('updated_at', { ascending: false })
+        .limit(6),
+      getLearnerStats(supabase, userId),
+    ]);
     if (courseError) throw courseError;
     courses = (courseData ?? []) as CourseRow[];
+    stats = learnerStats;
 
     const courseIds = courses.map((course) => course.id);
     const { data: moduleData, error: moduleError } = courseIds.length
@@ -80,7 +91,6 @@ export default async function DashboardPage() {
       : { data: [], error: null };
     if (progressError) throw progressError;
     progress = (progressData ?? []) as ProgressRow[];
-    stats = await getLearnerStats(supabase, userId);
   } catch (error) {
     console.error('Dashboard data loading failed', error);
   }
@@ -128,7 +138,7 @@ export default async function DashboardPage() {
         </section>
         <section className="app-dashboard-workbench">
           <article className="app-start-card"><div className="app-card-icon">✦</div><div><p>YOUR NEXT MOVE</p><h2>Build a path that<br />fits your <em>life.</em></h2><span>Use AI to shape a course from a goal, your notes, a public page, or a YouTube video.</span><Link href="/dashboard/course-generator">Open AI Course Generation <b>→</b></Link></div></article>
-          <GlobalLeaderboard currentUserId={userId} />
+          <Suspense fallback={<LeaderboardFallback />}><GlobalLeaderboard currentUserId={userId} /></Suspense>
         </section>
         <section className="app-recent-courses">
           <header><div><p className="eyebrow dark"><span>YOUR LIBRARY</span> RECENT PATHS</p><h2>Keep your momentum.</h2></div><Link href="/learning-path">Open Learning Path →</Link></header>

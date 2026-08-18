@@ -1,4 +1,5 @@
 import { clerkClient } from '@clerk/nextjs/server';
+import { unstable_cache } from 'next/cache';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
 type LeaderboardRow = {
@@ -23,32 +24,38 @@ function initial(name: string) {
   return name.trim().slice(0, 1).toUpperCase() || 'C';
 }
 
+// The same ranking is shown to everyone, so avoid repeating the Supabase and
+// Clerk lookups for every dashboard visit. A short cache keeps XP feeling live.
+const getLeaderboard = unstable_cache(async (): Promise<LeaderboardEntry[]> => {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from('learner_stats')
+    .select('user_id, total_xp, level')
+    .gt('total_xp', 0)
+    .order('total_xp', { ascending: false })
+    .limit(6);
+
+  if (error) throw error;
+
+  const rows = (data ?? []) as LeaderboardRow[];
+  const clerk = await clerkClient();
+  const names = await Promise.all(rows.map(async (row) => {
+    try {
+      const person = await clerk.users.getUser(row.user_id);
+      return [row.user_id, learnerName(person)] as const;
+    } catch {
+      return [row.user_id, 'Varen learner'] as const;
+    }
+  }));
+  const nameByUserId = new Map(names);
+  return rows.map((row) => ({ ...row, name: nameByUserId.get(row.user_id) || 'Varen learner' }));
+}, ['varen-global-leaderboard'], { revalidate: 60 });
+
 export async function GlobalLeaderboard({ currentUserId }: { currentUserId: string }) {
   let leaderboard: LeaderboardEntry[] = [];
 
   try {
-    const supabase = createSupabaseAdminClient();
-    const { data, error } = await supabase
-      .from('learner_stats')
-      .select('user_id, total_xp, level')
-      .gt('total_xp', 0)
-      .order('total_xp', { ascending: false })
-      .limit(6);
-
-    if (error) throw error;
-
-    const rows = (data ?? []) as LeaderboardRow[];
-    const clerk = await clerkClient();
-    const names = await Promise.all(rows.map(async (row) => {
-      try {
-        const person = await clerk.users.getUser(row.user_id);
-        return [row.user_id, learnerName(person)] as const;
-      } catch {
-        return [row.user_id, 'Varen learner'] as const;
-      }
-    }));
-    const nameByUserId = new Map(names);
-    leaderboard = rows.map((row) => ({ ...row, name: nameByUserId.get(row.user_id) || 'Varen learner' }));
+    leaderboard = await getLeaderboard();
   } catch (error) {
     console.error('Global leaderboard loading failed', error);
   }

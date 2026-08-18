@@ -46,6 +46,7 @@ function makeRival(previous?: Rival): ActiveRival {
 
 export function StudySprintGame() {
   const [isRunning, setIsRunning] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
   const [isJumping, setIsJumping] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
   const [score, setScore] = useState(0);
@@ -62,6 +63,18 @@ export function StudySprintGame() {
   const rivalRefs = useRef(new Map<number, HTMLDivElement>());
   const isJumpingRef = useRef(false);
   const clearedRivalIdsRef = useRef(new Set<number>());
+  const sprintRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const element = sprintRef.current;
+    if (!element || !('IntersectionObserver' in window)) {
+      setIsVisible(true);
+      return;
+    }
+    const observer = new IntersectionObserver(([entry]) => setIsVisible(entry.isIntersecting), { threshold: 0.1 });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
 
   function jump() {
     if (!isRunning || isJumping || questionIndex !== null) return;
@@ -92,13 +105,13 @@ export function StudySprintGame() {
   }
 
   useEffect(() => {
-    if (!isRunning || questionIndex !== null || isGameOver || activeRivals.length >= 2) return;
+    if (!isVisible || !isRunning || questionIndex !== null || isGameOver || activeRivals.length >= 2) return;
     const normalGap = 760 + Math.floor(Math.random() * 720);
     rivalTimerRef.current = setTimeout(() => {
       setActiveRivals((current) => current.length >= 2 ? current : [...current, makeRival(current.at(-1)?.kind)]);
     }, isQuietAfterQuiz ? Math.max(normalGap, 1900) : normalGap);
     return () => { if (rivalTimerRef.current) clearTimeout(rivalTimerRef.current); };
-  }, [activeRivals.length, isGameOver, isQuietAfterQuiz, isRunning, questionIndex]);
+  }, [activeRivals.length, isGameOver, isQuietAfterQuiz, isRunning, isVisible, questionIndex]);
 
   function answer(optionIndex: number) {
     if (questionIndex === null) return;
@@ -121,6 +134,7 @@ export function StudySprintGame() {
   }, [isQuietAfterQuiz]);
 
   useEffect(() => {
+    if (!isVisible) return;
     const timer = setInterval(() => {
       if (!isRunning || questionIndex !== null) return;
       elapsedRef.current += 1;
@@ -136,7 +150,7 @@ export function StudySprintGame() {
       }
     }, 1000);
     return () => clearInterval(timer);
-  }, [isJumping, isRunning, questionIndex]);
+  }, [isJumping, isRunning, isVisible, questionIndex]);
 
   useEffect(() => () => {
     if (jumpTimerRef.current) clearTimeout(jumpTimerRef.current);
@@ -144,7 +158,7 @@ export function StudySprintGame() {
   }, []);
 
   useEffect(() => {
-    if (!isRunning || questionIndex !== null || isGameOver) return;
+    if (!isVisible || !isRunning || questionIndex !== null || isGameOver) return;
     const collisionTimer = setInterval(() => {
       const hero = heroRef.current?.getBoundingClientRect();
       if (!hero) return;
@@ -162,7 +176,7 @@ export function StudySprintGame() {
       }
     }, 45);
     return () => clearInterval(collisionTimer);
-  }, [isGameOver, isRunning, questionIndex]);
+  }, [isGameOver, isRunning, isVisible, questionIndex]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -179,5 +193,5 @@ export function StudySprintGame() {
   }
 
   const question = questionIndex === null ? null : questions[questionIndex];
-  return <section className="study-sprint"><header><div><p className="eyebrow"><span className="pulse" /> FOCUS BREAK</p><h2>Study Sprint</h2><p>Jump with <kbd>Space</kbd> or tap the game. A quick learning check arrives every 4–6 seconds and clears the track until you answer correctly.</p></div><div className="sprint-score"><span>RUN SCORE · +1 / SECOND · +5 / RIVAL</span><strong>{String(score).padStart(3, '0')}</strong><button type="button" onClick={restart}>Restart</button></div></header><div className={`sprint-game${isRunning ? ' is-running' : ' is-paused'}`} onClick={jump} role="application" aria-label="Study Sprint runner game. Press Space or tap to jump."><div className="sprint-sky"><i /><i /><i /></div><div className="sprint-web web-a" /><div className="sprint-web web-b" /><div ref={heroRef} className={`sprint-hero${isJumping ? ' is-jumping' : ''}`} aria-hidden="true"><span className="hero-head" /><span className="hero-body" /><i /><i /><i /><i /></div>{activeRivals.map((rival) => <div ref={(node) => { if (node) rivalRefs.current.set(rival.id, node); else rivalRefs.current.delete(rival.id); }} key={rival.id} className={`sprint-obstacle ${rival.kind}`} style={{ '--rival-duration': `${rival.duration}s` } as React.CSSProperties} onAnimationEnd={() => passRival(rival.id)} aria-hidden="true"><i /><b /></div>)}<div className="sprint-ground"><i /></div>{question && <div className="sprint-question" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-label="Learning checkpoint"><span>LEARNING CHECKPOINT</span><h3>{question.prompt}</h3><div>{question.options.map((option, index) => <button key={option} type="button" onClick={() => answer(index)}>{option}<b>{String.fromCharCode(65 + index)}</b></button>)}</div>{feedback && <p role="alert">{feedback}</p>}<small>Choose the correct answer to resume the run.</small></div>}{isGameOver && <div className="sprint-game-over" onClick={(event) => event.stopPropagation()} role="status"><span>RUN ENDED</span><h3>A rival caught you.</h3><p>Score: {score}</p><button type="button" onClick={restart}>Run again</button></div>}{!isRunning && !question && !isGameOver && <div className="sprint-paused-label">PAUSED</div>}</div></section>;
+  return <section ref={sprintRef} className="study-sprint"><header><div><p className="eyebrow"><span className="pulse" /> FOCUS BREAK</p><h2>Study Sprint</h2><p>Jump with <kbd>Space</kbd> or tap the game. A quick learning check arrives every 4–6 seconds and clears the track until you answer correctly.</p></div><div className="sprint-score"><span>RUN SCORE · +1 / SECOND · +5 / RIVAL</span><strong>{String(score).padStart(3, '0')}</strong><button type="button" onClick={restart}>Restart</button></div></header><div className={`sprint-game${isRunning && isVisible ? ' is-running' : ' is-paused'}`} onClick={jump} role="application" aria-label="Study Sprint runner game. Press Space or tap to jump."><div className="sprint-sky"><i /><i /><i /></div><div className="sprint-web web-a" /><div className="sprint-web web-b" /><div ref={heroRef} className={`sprint-hero${isJumping ? ' is-jumping' : ''}`} aria-hidden="true"><span className="hero-head" /><span className="hero-body" /><i /><i /><i /><i /></div>{activeRivals.map((rival) => <div ref={(node) => { if (node) rivalRefs.current.set(rival.id, node); else rivalRefs.current.delete(rival.id); }} key={rival.id} className={`sprint-obstacle ${rival.kind}`} style={{ '--rival-duration': `${rival.duration}s` } as React.CSSProperties} onAnimationEnd={() => passRival(rival.id)} aria-hidden="true"><i /><b /></div>)}<div className="sprint-ground"><i /></div>{question && <div className="sprint-question" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-label="Learning checkpoint"><span>LEARNING CHECKPOINT</span><h3>{question.prompt}</h3><div>{question.options.map((option, index) => <button key={option} type="button" onClick={() => answer(index)}>{option}<b>{String.fromCharCode(65 + index)}</b></button>)}</div>{feedback && <p role="alert">{feedback}</p>}<small>Choose the correct answer to resume the run.</small></div>}{isGameOver && <div className="sprint-game-over" onClick={(event) => event.stopPropagation()} role="status"><span>RUN ENDED</span><h3>A rival caught you.</h3><p>Score: {score}</p><button type="button" onClick={restart}>Run again</button></div>}{!isRunning && !question && !isGameOver && <div className="sprint-paused-label">PAUSED</div>}</div></section>;
 }
