@@ -5,9 +5,10 @@ import { notFound } from 'next/navigation';
 import { CoursePlayer, type PlayerModule } from '@/components/course-player';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getLearnerStats } from '@/lib/gamification';
+import { isCertificateEligibleOrigin } from '@/lib/course-origin';
 import { ProductSwitcher } from '@/components/product-switcher';
 
-type Course = { id: string; title: string; summary: string; topic: string; estimated_minutes: number };
+type Course = { id: string; title: string; summary: string; topic: string; estimated_minutes: number; creation_origin: string | null };
 type Module = { id: string; position: number; title: string; description: string; estimated_minutes: number };
 type Progress = { module_id: string; status: 'not_started' | 'completed' };
 type Source = { id: string; source_type: 'link' | 'note'; label: string; url: string | null; source_text: string | null };
@@ -17,7 +18,7 @@ export default async function CoursePage({ params }: { params: Promise<{ courseI
   const { userId } = await auth();
   if (!userId) notFound();
   const supabase = createSupabaseAdminClient();
-  const { data: course, error: courseError } = await supabase.from('courses').select('id, title, summary, topic, estimated_minutes').eq('id', courseId).eq('owner_id', userId).maybeSingle();
+  const { data: course, error: courseError } = await supabase.from('courses').select('id, title, summary, topic, estimated_minutes, creation_origin').eq('id', courseId).eq('owner_id', userId).maybeSingle();
   if (courseError) throw new Error('Could not load this course.');
   if (!course) notFound();
 
@@ -38,5 +39,14 @@ export default async function CoursePage({ params }: { params: Promise<{ courseI
   const playerModules: PlayerModule[] = (modules as Module[] ?? []).map((module) => ({ id: module.id, position: module.position, title: module.title, description: module.description, estimatedMinutes: module.estimated_minutes, status: progressByModule.get(module.id) ?? 'not_started' }));
   const savedCourse = course as Course;
   const courseSources = sources as Source[] ?? [];
-  return <main className="course-shell"><header className="dashboard-header"><Link className="brand" href="/"><span className="brand-mark"><i /><i /><i /></span><span>Varen</span></Link><ProductSwitcher /><UserButton /></header><section className="course-hero"><Link href="/learning-path" className="back-to-dashboard">← All learning paths</Link><p className="eyebrow dark"><span>YOUR PATH</span> {savedCourse.topic}</p><h1>{savedCourse.title}</h1><p>{savedCourse.summary}</p><div><span>~{savedCourse.estimated_minutes} minutes</span><span>{playerModules.length} modules</span></div></section><CoursePlayer courseId={courseId} modules={playerModules} initialStats={learnerStats} />{courseSources.length > 0 && <section className="course-sources"><p className="eyebrow dark"><span>{String(courseSources.length).padStart(2, '0')}</span> COURSE SOURCES</p><div>{courseSources.map((source) => <article key={source.id}><span>{source.source_type === 'link' ? '↗' : '✎'}</span><div><strong>{source.label}</strong><small>{source.source_type === 'link' ? source.url : source.source_text}</small></div>{source.url && <a href={source.url} target="_blank" rel="noreferrer">Open ↗</a>}</article>)}</div></section>}</main>;
+  const isCourseComplete = playerModules.length > 0 && playerModules.every((module) => module.status === 'completed');
+  const certificateReady = isCourseComplete && isCertificateEligibleOrigin(savedCourse.creation_origin);
+
+  return <main className="course-shell">
+    <header className="dashboard-header"><Link className="brand" href="/"><span className="brand-mark"><i /><i /><i /></span><span>Varen</span></Link><ProductSwitcher /><UserButton /></header>
+    <section className="course-hero"><Link href="/learning-path" className="back-to-dashboard">← All learning paths</Link><p className="eyebrow dark"><span>YOUR PATH</span> {savedCourse.topic}</p><h1>{savedCourse.title}</h1><p>{savedCourse.summary}</p><div><span>~{savedCourse.estimated_minutes} minutes</span><span>{playerModules.length} modules</span></div></section>
+    <CoursePlayer courseId={courseId} modules={playerModules} initialStats={learnerStats} />
+    {certificateReady && <section className="course-certificate-ready"><div><span>VAREN ACHIEVEMENT</span><h2>Your certificate is ready.</h2><p>You completed every module in this AI Course Generation path. Keep this achievement or save it as a PDF.</p></div><Link href={`/certificates/${courseId}`}>View certificate <b>→</b></Link></section>}
+    {courseSources.length > 0 && <section className="course-sources"><p className="eyebrow dark"><span>{String(courseSources.length).padStart(2, '0')}</span> COURSE SOURCES</p><div>{courseSources.map((source) => <article key={source.id}><span>{source.source_type === 'link' ? '↗' : '✎'}</span><div><strong>{source.label}</strong><small>{source.source_type === 'link' ? source.url : source.source_text}</small></div>{source.url && <a href={source.url} target="_blank" rel="noreferrer">Open ↗</a>}</article>)}</div></section>}
+  </main>;
 }

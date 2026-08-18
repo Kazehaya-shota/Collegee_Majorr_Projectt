@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { parseCourseDraft } from '@/lib/course-draft';
+import { parseCourseOrigin } from '@/lib/course-origin';
 import { parseCourseSources } from '@/lib/course-sources';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
@@ -12,6 +13,7 @@ type SaveCourseRequest = {
   level?: unknown;
   timePerDay?: unknown;
   sources?: unknown;
+  creationOrigin?: unknown;
 };
 
 function text(value: unknown, fallback: string, limit: number) {
@@ -46,6 +48,7 @@ export async function POST(request: Request) {
         level: text(body.level, 'Some experience', 80),
         daily_time: text(body.timePerDay, '20 minutes a day', 80),
         estimated_minutes: draft.estimatedMinutes,
+        creation_origin: parseCourseOrigin(body.creationOrigin),
       })
       .select('id')
       .single();

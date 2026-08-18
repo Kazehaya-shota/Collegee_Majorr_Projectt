@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { CourseDraft } from '@/lib/course-draft';
+import { AI_COURSE_GENERATION_ORIGIN, COURSE_ORIGIN_STORAGE_KEY, parseCourseOrigin, type CourseOrigin } from '@/lib/course-origin';
 import type { CourseSource } from '@/lib/course-sources';
 import { DOCUMENT_ACCEPT, MAX_DOCUMENT_MB, readDocument } from '@/lib/document-ingestion';
 import { ProgressLoader } from '@/components/progress-loader';
@@ -35,6 +36,7 @@ export function LandingPlanner({ compact = false, restoreIngestedSources = false
   const [isCoaching, setIsCoaching] = useState(false);
   const [error, setError] = useState('');
   const [isSourceDriven, setIsSourceDriven] = useState(false);
+  const [creationOrigin, setCreationOrigin] = useState<CourseOrigin>(AI_COURSE_GENERATION_ORIGIN);
   const hasRestoredIngestedSources = useRef(false);
   const modules = draft?.modules ?? placeholderModules.map(([number, title, description]) => ({ number, title, description, estimatedMinutes: 25 }));
 
@@ -102,11 +104,13 @@ export function LandingPlanner({ compact = false, restoreIngestedSources = false
       if (!restored.length) return;
       const inferredTopic = restored[0].label;
       const restoreTimer = window.setTimeout(() => {
+        setCreationOrigin(parseCourseOrigin(window.sessionStorage.getItem(COURSE_ORIGIN_STORAGE_KEY)));
         setSources(restored);
         setTopic(inferredTopic);
         setIsSourceDriven(true);
         setCoachFeedback('Creating a course directly from your prepared material. You can adjust it once the first draft is ready.');
         window.sessionStorage.removeItem('varen-ingestion-sources');
+        window.sessionStorage.removeItem(COURSE_ORIGIN_STORAGE_KEY);
         void generatePath(inferredTopic, restored);
       }, 0);
       return () => window.clearTimeout(restoreTimer);
@@ -122,7 +126,7 @@ export function LandingPlanner({ compact = false, restoreIngestedSources = false
     setError('');
     setIsSaving(true);
     try {
-      const response = await fetch('/api/courses', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ draft, topic, level, timePerDay, sources }) });
+      const response = await fetch('/api/courses', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ draft, topic, level, timePerDay, sources, creationOrigin }) });
       const result = await response.json() as { courseId?: string; error?: string };
       if (!response.ok || !result.courseId) throw new Error(result.error || 'Course saving failed.');
       router.push('/learning-path');

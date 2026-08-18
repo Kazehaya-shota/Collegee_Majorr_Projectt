@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { CourseSource } from '@/lib/course-sources';
 import { DOCUMENT_ACCEPT, MAX_DOCUMENT_MB, documentContext, readDocument } from '@/lib/document-ingestion';
+import { CONTENT_INGESTION_ORIGIN, COURSE_ORIGIN_STORAGE_KEY } from '@/lib/course-origin';
 import { ProgressLoader } from '@/components/progress-loader';
 
 type Summary = { title: string; overview: string; concepts: Array<{ heading: string; content: string }>; takeaways: string[]; quiz: Array<{ question: string; options: string[]; explanation: string }> };
@@ -75,6 +76,7 @@ export function ContentIngestionWorkspace() {
   function useInGenerator() {
     if (!sources.length) { setError('Add at least one source first.'); return; }
     window.sessionStorage.setItem('varen-ingestion-sources', JSON.stringify(sources));
+    window.sessionStorage.setItem(COURSE_ORIGIN_STORAGE_KEY, CONTENT_INGESTION_ORIGIN);
     router.push('/dashboard/course-generator');
   }
 

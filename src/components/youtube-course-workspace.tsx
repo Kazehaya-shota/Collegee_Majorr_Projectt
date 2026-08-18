@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { CourseSource } from '@/lib/course-sources';
+import { COURSE_ORIGIN_STORAGE_KEY, YOUTUBE_TO_COURSE_ORIGIN } from '@/lib/course-origin';
 import { ProgressLoader } from '@/components/progress-loader';
 
 type YouTubeSource = { type: 'video' | 'playlist'; title: string; channel: string; thumbnail: string | null; videoCount: number; source: CourseSource };
@@ -32,6 +33,7 @@ export function YouTubeCourseWorkspace() {
   function createCourse() {
     if (!result) return;
     window.sessionStorage.setItem('varen-ingestion-sources', JSON.stringify([result.source]));
+    window.sessionStorage.setItem(COURSE_ORIGIN_STORAGE_KEY, YOUTUBE_TO_COURSE_ORIGIN);
     router.push('/dashboard/course-generator');
   }
 
