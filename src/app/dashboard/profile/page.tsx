@@ -7,11 +7,12 @@ import { ProfileAvatarUpload } from '@/components/profile-avatar-upload';
 import { ProfileNameEditor } from '@/components/profile-name-editor';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getLearnerStats, type LearnerStats } from '@/lib/gamification';
-import { isCertificateEligibleOrigin } from '@/lib/course-origin';
+import { isCertificateEligibleCourse } from '@/lib/course-origin';
 
 type Course = { id: string; title: string; topic: string; created_at: string; creation_origin: string | null };
 type Module = { id: string; course_id: string };
 type Progress = { module_id: string; status: 'not_started' | 'in_progress' | 'completed' };
+type CourseSource = { course_id: string };
 
 const toolLinks = [{ icon: '✦', label: 'AI Course Generation', href: '/dashboard/course-generator' }, { icon: '↥', label: 'Content Ingestion', href: '/dashboard/content-ingestion' }, { icon: '▶', label: 'YouTube to Course', href: '/dashboard/youtube-to-course' }, { icon: '◌', label: 'Interview Prep', href: '/dashboard/interview-prep' }];
 
@@ -27,6 +28,7 @@ export default async function ProfilePage() {
   let courses: Course[] = [];
   let modules: Module[] = [];
   let progress: Progress[] = [];
+  let courseSources: CourseSource[] = [];
   let stats: LearnerStats = { totalXp: 0, level: 1, currentStreak: 0, longestStreak: 0 };
   let interviewCount = 0;
 
@@ -36,6 +38,9 @@ export default async function ProfilePage() {
     if (courseError) throw courseError;
     courses = (courseData ?? []) as Course[];
     const courseIds = courses.map((course) => course.id);
+    const { data: sourceData, error: sourceError } = courseIds.length ? await supabase.from('course_sources').select('course_id').in('course_id', courseIds) : { data: [], error: null };
+    if (sourceError) throw sourceError;
+    courseSources = (sourceData ?? []) as CourseSource[];
     const { data: moduleData, error: moduleError } = courseIds.length ? await supabase.from('course_modules').select('id, course_id').in('course_id', courseIds) : { data: [], error: null };
     if (moduleError) throw moduleError;
     modules = (moduleData ?? []) as Module[];
@@ -50,7 +55,9 @@ export default async function ProfilePage() {
 
   const completedModules = new Set(progress.filter((item) => item.status === 'completed').map((item) => item.module_id));
   const completedCourses = courses.filter((course) => { const items = modules.filter((module) => module.course_id === course.id); return items.length > 0 && items.every((module) => completedModules.has(module.id)); });
-  const certificateCourses = completedCourses.filter((course) => isCertificateEligibleOrigin(course.creation_origin));
+  const sourceCountByCourse = new Map<string, number>();
+  for (const source of courseSources) sourceCountByCourse.set(source.course_id, (sourceCountByCourse.get(source.course_id) ?? 0) + 1);
+  const certificateCourses = completedCourses.filter((course) => isCertificateEligibleCourse(course.creation_origin, sourceCountByCourse.get(course.id) ?? 0));
   const startedCourses = courses.filter((course) => modules.filter((module) => module.course_id === course.id).some((module) => completedModules.has(module.id)));
   const levelProgress = stats.totalXp % 300;
 

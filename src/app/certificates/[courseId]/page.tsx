@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { notFound, redirect } from 'next/navigation';
 import { CertificatePrintButton } from '@/components/certificate-print-button';
-import { isCertificateEligibleOrigin } from '@/lib/course-origin';
+import { isCertificateEligibleCourse } from '@/lib/course-origin';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
 type CertificateCourse = { id: string; title: string; topic: string; creation_origin: string | null };
@@ -29,7 +29,13 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
     .eq('id', courseId)
     .eq('owner_id', userId)
     .maybeSingle();
-  if (courseError || !course || !isCertificateEligibleOrigin(course.creation_origin)) notFound();
+  if (courseError || !course) notFound();
+
+  const { count: sourceCount, error: sourceError } = await supabase
+    .from('course_sources')
+    .select('id', { count: 'exact', head: true })
+    .eq('course_id', courseId);
+  if (sourceError || !isCertificateEligibleCourse(course.creation_origin, sourceCount ?? 0)) notFound();
 
   const { data: modules, error: moduleError } = await supabase
     .from('course_modules')

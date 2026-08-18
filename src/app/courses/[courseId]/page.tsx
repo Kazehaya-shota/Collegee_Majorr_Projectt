@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 import { CoursePlayer, type PlayerModule } from '@/components/course-player';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getLearnerStats } from '@/lib/gamification';
-import { isCertificateEligibleOrigin } from '@/lib/course-origin';
+import { isCertificateEligibleCourse } from '@/lib/course-origin';
 import { ProductSwitcher } from '@/components/product-switcher';
 
 type Course = { id: string; title: string; summary: string; topic: string; estimated_minutes: number; creation_origin: string | null };
@@ -40,7 +40,7 @@ export default async function CoursePage({ params }: { params: Promise<{ courseI
   const savedCourse = course as Course;
   const courseSources = sources as Source[] ?? [];
   const isCourseComplete = playerModules.length > 0 && playerModules.every((module) => module.status === 'completed');
-  const certificateReady = isCourseComplete && isCertificateEligibleOrigin(savedCourse.creation_origin);
+  const certificateReady = isCourseComplete && isCertificateEligibleCourse(savedCourse.creation_origin, courseSources.length);
 
   return <main className="course-shell">
     <header className="dashboard-header"><Link className="brand" href="/"><span className="brand-mark"><i /><i /><i /></span><span>Varen</span></Link><ProductSwitcher /><UserButton /></header>

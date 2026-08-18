@@ -14,6 +14,13 @@ export function parseCourseOrigin(value: unknown): CourseOrigin {
   return AI_COURSE_GENERATION_ORIGIN;
 }
 
-export function isCertificateEligibleOrigin(value: unknown) {
-  return value === AI_COURSE_GENERATION_ORIGIN;
+/**
+ * Legacy courses created before creation_origin was introduced have a null
+ * origin. Earlier Content Ingestion and YouTube flows always saved a source,
+ * whereas direct AI Course Generation paths did not. This keeps certificates
+ * available for eligible legacy paths without extending them to those tools.
+ */
+export function isCertificateEligibleCourse(value: unknown, sourceCount: number) {
+  return value === AI_COURSE_GENERATION_ORIGIN
+    || (value === null && sourceCount === 0);
 }
